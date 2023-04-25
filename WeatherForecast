@@ -1,0 +1,104 @@
+import java.net.*;
+import java.io.*;
+import com.google.gson.*;
+
+public class WeatherForecast {
+
+    public static void main(String[] args) throws Exception {
+        String city = "Moscow";
+        URL url = new URL("http://api.openweathermap.org/data/2.5/forecast?q=" + city + "&units=metric&appid=YOUR_API_KEY");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Accept", "application/json");
+
+        if (conn.getResponseCode() != 200) {
+            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+        }
+
+        BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+
+        String output;
+        String json = "";
+        while ((output = br.readLine()) != null) {
+            json += output;
+        }
+
+        conn.disconnect();
+
+        Gson gson = new Gson();
+        WeatherForecastResponse weatherForecastResponse = gson.fromJson(json, WeatherForecastResponse.class);
+
+        for (int i = 0; i < weatherForecastResponse.getList().size(); i += 8) {
+            String date = weatherForecastResponse.getList().get(i).getDt_txt();
+            String weatherText = weatherForecastResponse.getList().get(i).getWeather().get(0).getDescription();
+            Double temperature = weatherForecastResponse.getList().get(i).getMain().getTemp();
+            System.out.println("| В городе " + city + " на дату " + date + " ожидается " + weatherText + ", температура - " + temperature + " |");
+        }
+    }
+}
+
+class WeatherForecastResponse {
+    private java.util.List<List> list;
+
+    public java.util.List<List> getList() {
+        return list;
+    }
+
+    public void setList(java.util.List<List> list) {
+        this.list = list;
+    }
+}
+
+class List {
+    private String dt_txt;
+    private java.util.List<Weather> weather;
+    private Main main;
+
+    public String getDt_txt() {
+        return dt_txt;
+    }
+
+    public void setDt_txt(String dt_txt) {
+        this.dt_txt = dt_txt;
+    }
+
+    public java.util.List<Weather> getWeather() {
+        return weather;
+    }
+
+    public void setWeather(java.util.List<Weather> weather) {
+        this.weather = weather;
+    }
+
+    public Main getMain() {
+        return main;
+    }
+
+    public void setMain(Main main) {
+        this.main = main;
+    }
+}
+
+class Weather {
+    private String description;
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+}
+
+class Main {
+    private Double temp;
+
+    public Double getTemp() {
+        return temp;
+    }
+
+    public void setTemp(Double temp) {
+        this.temp = temp;
+    }
+}
