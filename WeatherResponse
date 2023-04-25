@@ -1,0 +1,37 @@
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Scanner;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class WeatherResponse {
+    private String weatherText;
+    private double temperature;
+
+    // геттеры и сеттеры
+
+    public static void main(String[] args) throws IOException {
+        // Отправляем запрос на сервер и получаем ответ в виде JSON-строки
+        String json = readUrl("https://api.weather.com/currentconditions/v1/USCA0987:1:US?apiKey=API_KEY&language=ru-RU&units=m");
+
+        // Десериализуем JSON-строку в объект класса WeatherResponse
+        ObjectMapper mapper = new ObjectMapper();
+        WeatherResponse weatherResponse = mapper.readValue(json, WeatherResponse.class);
+
+        // Извлекаем информацию о погоде из объекта класса WeatherResponse
+        String weatherText = weatherResponse.getWeatherText();
+        double temperature = weatherResponse.getTemperature();
+
+        // Выводим информацию о погоде пользователю
+        System.out.printf("Погода: %s%nТемпература: %.1f градусов Цельсия%n", weatherText, temperature);
+    }
+
+    private static String readUrl(String urlString) throws IOException {
+        try (InputStream inputStream = new URL(urlString).openStream()) {
+            Scanner scanner = new Scanner(inputStream);
+            scanner.useDelimiter("\\A");
+            return scanner.hasNext() ? scanner.next() : "";
+        }
+    }
+}
